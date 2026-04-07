@@ -11,11 +11,30 @@ function DirectorDashboard() {
   const [students, setStudents] = useState([]);
   const [activeSection, setActiveSection] = useState("teachers");
 
+  const levels = ["S1", "S2", "S3", "L3", "L4", "L5"];
+  const modules = ["SOD", "NIT"];
+  const classLetters = ["A", "B", "C"];
+
+  const advancedLevels = ["L3", "L4", "L5"];
+
+  const buildClassName = (level, module, classLetter) => {
+    if (!level || !classLetter) return "";
+
+    if (advancedLevels.includes(level)) {
+      if (!module) return "";
+      return `${level} ${module} ${classLetter}`;
+    }
+
+    return `${level} ${classLetter}`;
+  };
   const [teacherForm, setTeacherForm] = useState({
     fullName: "",
     email: "",
     password: "",
     subject: "",
+    level: "",
+    module: "",
+    classLetter: "",
     className: "",
     teacherCode: ""
   });
@@ -24,6 +43,9 @@ function DirectorDashboard() {
     fullName: "",
     email: "",
     password: "",
+    level: "",
+    module: "",
+    classLetter: "",
     className: "",
     studentCode: ""
   });
@@ -66,25 +88,59 @@ function DirectorDashboard() {
   }, []);
 
   const handleTeacherChange = (e) => {
-    setTeacherForm((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value
-    }));
+    const { name, value } = e.target;
+
+    setTeacherForm((prev) => {
+      const updated = {
+        ...prev,
+        [name]: value
+      };
+
+      if (name === "level" && !advancedLevels.includes(value)) {
+        updated.module = "";
+      }
+
+      updated.className = buildClassName(
+        updated.level,
+        updated.module,
+        updated.classLetter
+      );
+
+      return updated;
+    });
   };
 
   const handleStudentChange = (e) => {
-    setStudentForm((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value
-    }));
-  };
+    const { name, value } = e.target;
 
+    setStudentForm((prev) => {
+      const updated = {
+        ...prev,
+        [name]: value
+      };
+
+      if (name === "level" && !advancedLevels.includes(value)) {
+        updated.module = "";
+      }
+
+      updated.className = buildClassName(
+        updated.level,
+        updated.module,
+        updated.classLetter
+      );
+
+      return updated;
+    });
+  };
   const resetTeacherForm = () => {
     setTeacherForm({
       fullName: "",
       email: "",
       password: "",
       subject: "",
+      level: "",
+      module: "",
+      classLetter: "",
       className: "",
       teacherCode: ""
     });
@@ -96,6 +152,9 @@ function DirectorDashboard() {
       fullName: "",
       email: "",
       password: "",
+      level: "",
+      module: "",
+      classLetter: "",
       className: "",
       studentCode: ""
     });
@@ -156,25 +215,62 @@ function DirectorDashboard() {
   };
 
   const handleEditTeacher = (teacher) => {
+    const rawClass = teacher.className || "";
+    const parts = rawClass.split(" ");
+
+    let level = "";
+    let module = "";
+    let classLetter = "";
+
+    if (parts.length === 2) {
+      level = parts[0];
+      classLetter = parts[1];
+    } else if (parts.length === 3) {
+      level = parts[0];
+      module = parts[1];
+      classLetter = parts[2];
+    }
+
     setEditingTeacherId(teacher._id);
     setTeacherForm({
       fullName: teacher.fullName || "",
       email: teacher.email || "",
       password: "",
       subject: teacher.subject || "",
+      level,
+      module,
+      classLetter,
       className: teacher.className || "",
       teacherCode: teacher.teacherCode || ""
     });
     setActiveSection("teachers");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
-
   const handleEditStudent = (student) => {
+    const rawClass = student.className || "";
+    const parts = rawClass.split(" ");
+
+    let level = "";
+    let module = "";
+    let classLetter = "";
+
+    if (parts.length === 2) {
+      level = parts[0];
+      classLetter = parts[1];
+    } else if (parts.length === 3) {
+      level = parts[0];
+      module = parts[1];
+      classLetter = parts[2];
+    }
+
     setEditingStudentId(student._id);
     setStudentForm({
       fullName: student.fullName || "",
       email: student.email || "",
       password: "",
+      level,
+      module,
+      classLetter,
       className: student.className || "",
       studentCode: student.studentCode || ""
     });
@@ -280,8 +376,37 @@ function DirectorDashboard() {
                   <input name="password" placeholder="Password" value={teacherForm.password} onChange={handleTeacherChange} />
                 )}
                 <input name="subject" placeholder="Subject" value={teacherForm.subject} onChange={handleTeacherChange} />
-                <input name="className" placeholder="Class name" value={teacherForm.className} onChange={handleTeacherChange} />
-                <input name="teacherCode" placeholder="Teacher code" value={teacherForm.teacherCode} onChange={handleTeacherChange} />
+                <select name="level" value={teacherForm.level} onChange={handleTeacherChange}>
+                  <option value="">Select level</option>
+                  {levels.map((level) => (
+                    <option key={level} value={level}>
+                      {level}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  name="module"
+                  value={teacherForm.module}
+                  onChange={handleTeacherChange}
+                  disabled={!advancedLevels.includes(teacherForm.level)}
+                >
+                  <option value="">Select module</option>
+                  {modules.map((module) => (
+                    <option key={module} value={module}>
+                      {module}
+                    </option>
+                  ))}
+                </select>
+
+                <select name="classLetter" value={teacherForm.classLetter} onChange={handleTeacherChange}>
+                  <option value="">Select class</option>
+                  {classLetters.map((letter) => (
+                    <option key={letter} value={letter}>
+                      {letter}
+                    </option>
+                  ))}
+                </select><input name="teacherCode" placeholder="Teacher code" value={teacherForm.teacherCode} onChange={handleTeacherChange} />
                 <button type="submit">
                   {editingTeacherId ? "Update Teacher" : "Create Teacher"}
                 </button>
@@ -356,8 +481,37 @@ function DirectorDashboard() {
                 {!editingStudentId && (
                   <input name="password" placeholder="Password" value={studentForm.password} onChange={handleStudentChange} />
                 )}
-                <input name="className" placeholder="Class name" value={studentForm.className} onChange={handleStudentChange} />
-                <input name="studentCode" placeholder="Student code" value={studentForm.studentCode} onChange={handleStudentChange} />
+                <select name="level" value={studentForm.level} onChange={handleStudentChange}>
+                  <option value="">Select level</option>
+                  {levels.map((level) => (
+                    <option key={level} value={level}>
+                      {level}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  name="module"
+                  value={studentForm.module}
+                  onChange={handleStudentChange}
+                  disabled={!advancedLevels.includes(studentForm.level)}
+                >
+                  <option value="">Select module</option>
+                  {modules.map((module) => (
+                    <option key={module} value={module}>
+                      {module}
+                    </option>
+                  ))}
+                </select>
+
+                <select name="classLetter" value={studentForm.classLetter} onChange={handleStudentChange}>
+                  <option value="">Select class</option>
+                  {classLetters.map((letter) => (
+                    <option key={letter} value={letter}>
+                      {letter}
+                    </option>
+                  ))}
+                </select><input name="studentCode" placeholder="Student code" value={studentForm.studentCode} onChange={handleStudentChange} />
                 <button type="submit">
                   {editingStudentId ? "Update Student" : "Create Student"}
                 </button>
