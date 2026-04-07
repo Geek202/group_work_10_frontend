@@ -1,15 +1,35 @@
-'use strict';
+export const validateMarks = (marks) => {
+  if (marks === "" || marks === null || marks === undefined) {
+    return { valid: true, error: "" };
+  }
 
-/**
- * Validates the marks percentage.
- * @param {number} percentage - The percentage to validate.
- * @returns {boolean} - Returns true if the percentage is between 0 and 100, false otherwise.
- */
-function validatePercentage(percentage) {
-    if (typeof percentage !== 'number') {
-        throw new Error('Input must be a number.');
-    }
-    return percentage >= 0 && percentage <= 100;
-}
+  const marksNum = Number(marks);
 
-module.exports = { validatePercentage };
+  if (isNaN(marksNum)) {
+    return { valid: false, error: "Marks must be a valid number" };
+  }
+
+  if (marksNum < 0) {
+    return { valid: false, error: "Marks cannot be negative" };
+  }
+
+  if (marksNum > 100) {
+    return { valid: false, error: "Marks cannot exceed 100%" };
+  }
+
+  return { valid: true, error: "" };
+};
+
+export const getGradeFromPercentage = (percentage) => {
+  const num = Number(percentage);
+
+  if (num >= 90) return "A";
+  if (num >= 80) return "B";
+  if (num >= 70) return "C";
+  if (num >= 60) return "D";
+  return "F";
+};
+
+export const isMarksPass = (percentage) => {
+  return Number(percentage) >= 50;
+};
